@@ -5,11 +5,12 @@ package com.example.myapplication;
  */
 
 public class ContactsFullInfo {
-    private String CID;
+    private String COUNT;
     private String name;
     private String phone;
     private String head;
     private String address;
+    private String id;
 
     public ContactsFullInfo(String name, String phone, String head, String address) {
         this.name = name;
@@ -18,12 +19,37 @@ public class ContactsFullInfo {
         this.address = address;
     }
 
-    public void setCID(String CID) {
-        this.CID = CID;
+    public String getId() {
+        return id;
     }
 
-    public String getCID() {
-        return CID;
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public ContactsFullInfo(String COUNT, String name, String phone, String head, String address) {
+        this.COUNT = COUNT;
+        this.name = name;
+        this.phone = phone;
+        this.head = head;
+        this.address = address;
+    }
+
+    public ContactsFullInfo(String COUNT, String name, String phone, String head, String address, String id) {
+        this.COUNT = COUNT;
+        this.name = name;
+        this.phone = phone;
+        this.head = head;
+        this.address = address;
+        this.id = id;
+    }
+
+    public String getCOUNT() {
+        return COUNT;
+    }
+
+    public void setCOUNT(String COUNT) {
+        this.COUNT = COUNT;
     }
 
     public ContactsFullInfo() {

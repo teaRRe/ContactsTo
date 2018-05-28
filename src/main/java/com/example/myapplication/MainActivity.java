@@ -18,12 +18,18 @@ import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.Adapter;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.TextView;
 
@@ -54,6 +60,8 @@ public class MainActivity extends AppCompatActivity {
         rec_show = (RecyclerView) findViewById(R.id.rec_show);
 
 
+
+
         btn_sech.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -78,6 +86,51 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        /**
+         *
+         */
+        final DatabaseHelper dp = new DatabaseHelper(this, "Contacts.db", null, 3);
+
+
+        LinearLayoutManager layoutManager = new LinearLayoutManager(MainActivity.this);
+        rec_sech.setLayoutManager(layoutManager);
+        rec_sech.addItemDecoration(new DividerItemDecoration(MainActivity.this,DividerItemDecoration.VERTICAL));
+
+        txt_sech.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+            @Override
+            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+                Log.i("Log","Search Begin!" + v.getText());
+
+                return false;
+            }
+        });
+
+
+        txt_sech.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                Log.i("Log", "Text Change!" + s);
+
+                List<ContactsItem> list = new ArrayList<>();
+                list = dp.onFindByName(MainActivity.this, s.toString());
+
+                SearchAdapter adapter = new SearchAdapter(list);
+                rec_sech.setAdapter(adapter);
+
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+
+            }
+        });
+
+
         fab.setImageResource(R.drawable.addpeople);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -88,36 +141,39 @@ public class MainActivity extends AppCompatActivity {
         });
 
         //setData();
-        getData();
+        /**
+         * 主界面显示
+         */
+        //getData();
+        updateRec();
+    }
+
+    /**
+     * 返回主界面时刷新数据
+     */
+    protected void onStart(){
+        super.onStart();
+        updateRec();
+    }
+    protected void onDestroy(){
+        super.onDestroy();
+        contactsItemList.clear();
+    }
+
+    /**
+     * 刷新界面数据
+     */
+    public void updateRec(){
+        contactsItemList =  new DatabaseHelper(this, "Contacts.db", null, 3).getDate(this);
 
         LinearLayoutManager layoutManager = new LinearLayoutManager(this);
         rec_show.setLayoutManager(layoutManager);
         rec_show.addItemDecoration(new DividerItemDecoration(this,DividerItemDecoration.VERTICAL));
         ContactsAdapter adapter = new ContactsAdapter(contactsItemList);
         rec_show.setAdapter(adapter);
-
     }
 
 
-    /**
-     * 从数据库里查询联系人
-     */
-    private void getData(){
-        SQLiteDatabase db = new DatabaseHelper(this, "Contacts.db", null, 3).getWritableDatabase();
-
-        String quertAllSql = "select * from contacts;";
-        Cursor cursor = db.rawQuery(quertAllSql, null);
-        if (cursor.moveToFirst()){
-            do {
-                String img = cursor.getString(cursor.getColumnIndex("head"));
-                String name = cursor.getString(cursor.getColumnIndex("name"));
-                String CID = cursor.getString(cursor.getColumnIndex("count"));
-                setDataFromDatabase("", name, CID);
-            }
-            while (cursor.moveToNext());
-            cursor.close();
-        }
-    }
 
     public String getUriFromDrawableRes(Context context, int id) {
         Resources resources = context.getResources();
@@ -129,21 +185,6 @@ public class MainActivity extends AppCompatActivity {
         return path;
     }
 
-    private void setDataFromDatabase(String img, String name, String CID){
-        ContactsItem item = new ContactsItem();
-
-        if (img == null || "".equals(img)){
-            item.setImg(getUriFromDrawableRes(MainActivity.this, R.drawable.ic_nature_people_48pt_3x));
-            item.setName(name);
-            item.setCID("#" + CID);
-        }else{
-            item.setName(img);
-            item.setName(name);
-            item.setCID("#" + CID);
-        }
-
-        contactsItemList.add(item);
-    }
     //测试数据
     private void setData(){
 

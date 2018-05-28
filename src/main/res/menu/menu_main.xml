@@ -4,6 +4,4 @@
     tools:context="com.example.myapplication.MainActivity">
     <item android:id="@+id/action_settings" android:orderInCategory="100"
         android:title="@string/action_settings" app:showAsAction="never" />
-    <item android:id="@+id/action_se" android:orderInCategory="100"
-        android:title="TEST" app:showAsAction="never" />
 </menu>

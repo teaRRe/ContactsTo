@@ -5,9 +5,28 @@ package com.example.myapplication;
  */
 
 public class ContactsItem {
-    private String CID;
+    private String id;
+    private String COUNT;
     private String img;
     private String name;
+
+    public ContactsItem() {
+    }
+
+    public ContactsItem(String id, String COUNT, String img, String name) {
+        this.id = id;
+        this.COUNT = COUNT;
+        this.img = img;
+        this.name = name;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
 
     public String getImg() {
         return img;
@@ -17,12 +36,12 @@ public class ContactsItem {
         return name;
     }
 
-    public String getCID() {
-        return CID;
+    public String getCOUNT() {
+        return COUNT;
     }
 
-    public void setCID(String CID) {
-        this.CID = CID;
+    public void setCOUNT(String COUNT) {
+        this.COUNT = COUNT;
     }
 
     public void setImg(String img) {
