@@ -1,7 +1,11 @@
 package com.example.myapplication;
 
+import android.Manifest;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.database.sqlite.SQLiteDatabase;
+import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
@@ -54,10 +58,10 @@ public class DetailesActivity extends AppCompatActivity {
         btn_call = (ImageView) findViewById(R.id.btn_call);
         btn_msg = (ImageView) findViewById(R.id.btn_msg);
 
-        // ContactsFullInfo contactsFullInfo = new DatabaseHelper(this, "Contacts.db", null, 3).getContactFullInoByNameAndCount(name, count.substring(1));
-        //根据唯一ID来查询方便省事
+        //根据唯一ID来查询
         ContactsFullInfo contactsFullInfo = new  DatabaseHelper(this, "Contacts.db", null, 3).getFullInfoById(id);
         ORIGIN_NAME = contactsFullInfo.getName();
+
         _ID = id;
 
         /**
@@ -73,7 +77,7 @@ public class DetailesActivity extends AppCompatActivity {
             public void onClick(View v) {
 
                 UpdateContacts(_ID, txt_name.getText().toString(), txt_phone.getText().toString(),
-                        txt_address.getText().toString(), "" );
+                                txt_address.getText().toString(), "" );
 
                 Toast.makeText(DetailesActivity.this, "联系人更新成功", Toast.LENGTH_SHORT).show();
 
@@ -85,6 +89,46 @@ public class DetailesActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 finish();
+            }
+        });
+
+        btn_call.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (Build.VERSION.SDK_INT>= Build.VERSION_CODES.M){
+                    if (null != txt_phone.getText() || !"".equals(txt_phone.getText())) {
+                        if (DetailesActivity.this.checkSelfPermission(android.Manifest.permission.CALL_PHONE)
+                                == PackageManager.PERMISSION_GRANTED) {
+                            Uri uri = Uri.parse("tel:" + txt_phone.getText());
+                            Intent intent = new Intent(Intent.ACTION_CALL, uri);
+                            startActivity(intent);
+                        } else {
+                            Toast.makeText(DetailesActivity.this, "No Permission!", Toast.LENGTH_SHORT).show();
+                            requestPermissions(new String[]{android.Manifest.permission.CALL_PHONE}, 1);
+                        }
+                    }
+                }
+            }
+        });
+
+        btn_msg.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (Build.VERSION.SDK_INT>= Build.VERSION_CODES.M){
+                    if (null != txt_phone.getText() || !"".equals(txt_phone.getText())) {
+
+                        if (DetailesActivity.this.checkSelfPermission(Manifest.permission.SEND_SMS)
+                                == PackageManager.PERMISSION_GRANTED) {
+                            Uri uri = Uri.parse("smsto:" + txt_phone.getText());
+                            Intent intent = new Intent(Intent.ACTION_SENDTO, uri);
+                            startActivity(intent);
+                        } else {
+                            Toast.makeText(DetailesActivity.this, "No Permission!", Toast.LENGTH_SHORT).show();
+                            requestPermissions(new String[]{Manifest.permission.SEND_SMS}, 1);
+                        }
+
+                    }
+                }
             }
         });
 
@@ -101,17 +145,27 @@ public class DetailesActivity extends AppCompatActivity {
     private void UpdateContacts(String _id, String _name, String _phone, String _address, String _head){
 
         ContactsFullInfo contactsFullInfo = new ContactsFullInfo(_name, _phone, _head, _address);
-        //不改名字，COUNT不变
+        // 不改名字，COUNT不变
         if (ORIGIN_NAME.equals(txt_name.getText().toString())){
 
             new DatabaseHelper(this, "Contacts.db", null, 3).onUpdate(_ID, contactsFullInfo);
 
         }else{
-            //改了名字？？？删了原来的，重新加吧。
+            // 改了名字？？？删了原来的，重新加吧。
+            // 此时ID会变
             DatabaseHelper dp = new DatabaseHelper(this, "Contacts.db", null, 3);
             dp.onDelete(_ID);
             dp.onAdd(contactsFullInfo);
         }
+        /**
+         *
+         */
+        DatabaseHelper dp = new DatabaseHelper(DetailesActivity.this, "Contacts.db", null, 3);
 
+        List<ContactsFullInfo> list = dp.selectByName(_name);
+
+        for (int i = 0; i < list.size();i++){
+            dp.onUpdateAfterDelete( list.get(i).getId(), String.valueOf(i+1), _name);
+        }
     }
 }

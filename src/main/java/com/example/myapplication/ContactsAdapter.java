@@ -33,6 +33,10 @@ public class ContactsAdapter extends RecyclerView.Adapter<ContactsAdapter.ViewHo
 
     private List<ContactsItem> mContacts;
 
+    public ContactsAdapter(List<ContactsItem> list){
+        mContacts = list;
+    }
+
     static class ViewHolder extends RecyclerView.ViewHolder{
         View contactView;
         ImageView item_img;
@@ -47,12 +51,9 @@ public class ContactsAdapter extends RecyclerView.Adapter<ContactsAdapter.ViewHo
             }
         }
 
-    public ContactsAdapter(List<ContactsItem> list){
-        mContacts = list;
-    }
-
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+
         View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.ietms, parent, false);
         final ViewHolder holder = new ViewHolder(view);
 
@@ -83,23 +84,7 @@ public class ContactsAdapter extends RecyclerView.Adapter<ContactsAdapter.ViewHo
                 return false;
             }
         });
-        holder.contactView.setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View v, MotionEvent event) {
 
-                switch (event.getAction()){
-                    case MotionEvent.ACTION_POINTER_DOWN:
-                        v.setBackgroundColor(0xffe8e8e8);
-                        break;
-                    case MotionEvent.ACTION_POINTER_UP:
-                        v.setBackgroundColor(0x00ffffff);
-                        break;
-                    default:
-                        break;
-                }
-                return false;
-            }
-        });
         return holder;
     }
 
@@ -155,6 +140,13 @@ public class ContactsAdapter extends RecyclerView.Adapter<ContactsAdapter.ViewHo
         });
         listDialog.show();
     }
+
+    /**
+     *
+     * @param context
+     * @param id
+     * @param name
+     */
     private void showNormalDialog(final Context context, String id, final String name){
         /* @setIcon 设置对话框图标
          * @setTitle 设置对话框标题
@@ -173,7 +165,7 @@ public class ContactsAdapter extends RecyclerView.Adapter<ContactsAdapter.ViewHo
                         /**
                          * 删除以后更新数据
                          */
-                        //new DatabaseHelper(mcontext, "Contacts.db", null, 3).onDelete(mid);
+
                         DatabaseHelper dp = new DatabaseHelper(mcontext, "Contacts.db", null, 3);
 
                         dp.onDelete(mid);
@@ -184,8 +176,9 @@ public class ContactsAdapter extends RecyclerView.Adapter<ContactsAdapter.ViewHo
                             dp.onUpdateAfterDelete( list.get(i).getId(), String.valueOf(i+1), name);
                         }
 
-                        /*ContactsAdapter.this.notifyDataSetChanged();
-                        ContactsAdapter.this.notifyItemRemoved(Integer.parseInt(mid));*/
+                        Intent intent = new Intent(mcontext, MainActivity.class);
+                        mcontext.startActivity(intent);
+
                         dp.close();
 
                     }

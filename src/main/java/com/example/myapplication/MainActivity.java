@@ -69,15 +69,23 @@ public class MainActivity extends AppCompatActivity {
                 if (txt_sech.getText() != "")
                     txt_sech.setText("");
 
+                // txt_sech: 搜索的输入框
+
                 if (txt_sech.getVisibility() == View.GONE){
+                    // 先把搜索框显示出来
                     txt_sech.setVisibility(View.VISIBLE);
+                    // 显示搜索 RecycleView
                     rec_sech.setVisibility(View.VISIBLE);
-                    rec_show.setVisibility(View.GONE);
+                    // 隐藏主界面 RecycleView
+                    rec_show.setVisibility(View.INVISIBLE);
                     setTitle("搜索");
                 }
                 else {
+                    // 隐藏搜索框
                     txt_sech.setVisibility(View.GONE);
+                    // 隐藏搜索RecycleView
                     rec_sech.setVisibility(View.GONE);
+                    // 显示主界面RecycleView
                     rec_show.setVisibility(View.VISIBLE);
                     setTitle("ContactsTo");
                     InputMethodManager inputmanger = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
@@ -117,7 +125,8 @@ public class MainActivity extends AppCompatActivity {
                 Log.i("Log", "Text Change!" + s);
 
                 List<ContactsItem> list = new ArrayList<>();
-                list = dp.onFindByName(MainActivity.this, s.toString());
+                if (!"".equals(s) || s != null)
+                    list = dp.onFindByName(MainActivity.this, s.toString());
 
                 SearchAdapter adapter = new SearchAdapter(list);
                 rec_sech.setAdapter(adapter);
@@ -160,6 +169,7 @@ public class MainActivity extends AppCompatActivity {
         contactsItemList.clear();
     }
 
+
     /**
      * 刷新界面数据
      */
@@ -172,7 +182,6 @@ public class MainActivity extends AppCompatActivity {
         ContactsAdapter adapter = new ContactsAdapter(contactsItemList);
         rec_show.setAdapter(adapter);
     }
-
 
 
     public String getUriFromDrawableRes(Context context, int id) {

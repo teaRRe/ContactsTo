@@ -81,6 +81,8 @@ public class AddActivity extends AppCompatActivity {
                 Toast.makeText(AddActivity.this, "该联系人已保存", Toast.LENGTH_SHORT).show();
                 Intent intent = new Intent(AddActivity.this, MainActivity.class);
                 startActivity(intent);
+
+                AddActivity.this.finish();
             }
         });
 
