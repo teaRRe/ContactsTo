@@ -11,8 +11,11 @@ import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.provider.ContactsContract;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
@@ -33,8 +36,10 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.TextView;
 
+import java.io.Console;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.jar.Manifest;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -45,9 +50,11 @@ public class MainActivity extends AppCompatActivity {
     private TextView txt_sech;
     private RecyclerView rec_sech;
     private RecyclerView rec_show;
+    private View action_setting;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -59,9 +66,12 @@ public class MainActivity extends AppCompatActivity {
         rec_sech = (RecyclerView) findViewById(R.id.rec_sech);
         rec_show = (RecyclerView) findViewById(R.id.rec_show);
 
+        action_setting = findViewById(R.id.action_settings);
 
 
-
+        /**
+         *  搜索框点击 对应的RecycleView显示和隐藏事件
+         */
         btn_sech.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -94,31 +104,19 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        /**
-         *
-         */
-        final DatabaseHelper dp = new DatabaseHelper(this, "Contacts.db", null, 3);
 
+        final DatabaseHelper dp = new DatabaseHelper(this, "Contacts.db", null, 3);
 
         LinearLayoutManager layoutManager = new LinearLayoutManager(MainActivity.this);
         rec_sech.setLayoutManager(layoutManager);
         rec_sech.addItemDecoration(new DividerItemDecoration(MainActivity.this,DividerItemDecoration.VERTICAL));
 
-        txt_sech.setOnEditorActionListener(new TextView.OnEditorActionListener() {
-            @Override
-            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
-                Log.i("Log","Search Begin!" + v.getText());
-
-                return false;
-            }
-        });
-
-
+        /**
+         *  搜索框输入改变监听事件
+         */
         txt_sech.addTextChangedListener(new TextWatcher() {
             @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-
-            }
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
@@ -134,11 +132,8 @@ public class MainActivity extends AppCompatActivity {
             }
 
             @Override
-            public void afterTextChanged(Editable s) {
-
-            }
+            public void afterTextChanged(Editable s) {}
         });
-
 
         fab.setImageResource(R.drawable.addpeople);
         fab.setOnClickListener(new View.OnClickListener() {
@@ -157,6 +152,41 @@ public class MainActivity extends AppCompatActivity {
         updateRec();
     }
 
+    private void readContacts(){
+        Cursor cursor = null;
+        try {
+            // 查询联系人数据
+            cursor = getContentResolver().query(ContactsContract.CommonDataKinds.
+                    Phone.CONTENT_URI, null, null, null, null);
+            if (cursor != null) {
+                while (cursor.moveToNext()) {
+                    // 获取联系人姓名
+                    String displayName = cursor.getString(cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME));
+                    // 获取联系人手机号
+                    String number = cursor.getString(cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER));
+
+                    ContactsItem phoneContacts = new ContactsItem();
+
+                    phoneContacts.setName(displayName);
+                    phoneContacts.setId("p-"+displayName);
+
+                    updateRec();
+                    contactsItemList.add(phoneContacts);
+
+                    Log.i("Log","-----------DisplayName: " + displayName + "   number： " + number);
+                }
+
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            if (cursor != null) {
+                cursor.close();
+            }
+        }
+    }
+
+
     /**
      * 返回主界面时刷新数据
      */
@@ -174,11 +204,17 @@ public class MainActivity extends AppCompatActivity {
      * 刷新界面数据
      */
     public void updateRec(){
+
         contactsItemList =  new DatabaseHelper(this, "Contacts.db", null, 3).getDate(this);
 
-        LinearLayoutManager layoutManager = new LinearLayoutManager(this);
-        rec_show.setLayoutManager(layoutManager);
-        rec_show.addItemDecoration(new DividerItemDecoration(this,DividerItemDecoration.VERTICAL));
+        if (rec_show.getLayoutManager()== null){
+
+            LinearLayoutManager layoutManager = new LinearLayoutManager(this);
+            rec_show.setLayoutManager(layoutManager);
+            rec_show.addItemDecoration(new DividerItemDecoration(this,DividerItemDecoration.VERTICAL));
+
+        }
+
         ContactsAdapter adapter = new ContactsAdapter(contactsItemList);
         rec_show.setAdapter(adapter);
     }
@@ -208,7 +244,9 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
+
+        menu.add(Menu.NONE, 10, 2, "读取系统通讯录");
+
         getMenuInflater().inflate(R.menu.menu_main, menu);
         return true;
     }
@@ -220,11 +258,28 @@ public class MainActivity extends AppCompatActivity {
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
 
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
+        switch (id){
+
+            case R.id.action_settings:
+                break;
+            case 10:
+                getPermission();
+                break;
+            default:
+                break;
+
         }
 
         return super.onOptionsItemSelected(item);
+    }
+    private void getPermission(){
+
+        if (ContextCompat.checkSelfPermission(MainActivity.this, android.Manifest.permission.READ_CONTACTS)
+                != PackageManager.PERMISSION_GRANTED){
+            ActivityCompat.requestPermissions(MainActivity.this, new String[]{android.Manifest.permission.READ_CONTACTS}, 1);
+
+        }else {
+            readContacts();
+        }
     }
 }

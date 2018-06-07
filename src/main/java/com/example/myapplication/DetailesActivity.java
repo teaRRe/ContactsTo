@@ -49,6 +49,8 @@ public class DetailesActivity extends AppCompatActivity {
         String count = intent.getStringExtra("count");
         String id = intent.getStringExtra("id");
 
+
+
         txt_name = (TextView) findViewById(R.id.txt_name);
         txt_phone = (TextView) findViewById(R.id.txt_phone);
         txt_address = (TextView) findViewById(R.id.txt_addr);
@@ -59,18 +61,21 @@ public class DetailesActivity extends AppCompatActivity {
         btn_msg = (ImageView) findViewById(R.id.btn_msg);
 
         //根据唯一ID来查询
-        ContactsFullInfo contactsFullInfo = new  DatabaseHelper(this, "Contacts.db", null, 3).getFullInfoById(id);
-        ORIGIN_NAME = contactsFullInfo.getName();
+
+        if (!id.contains("p-")){
+            ContactsFullInfo contactsFullInfo = new  DatabaseHelper(this, "Contacts.db", null, 3).getFullInfoById(id);
+            ORIGIN_NAME = contactsFullInfo.getName();
+
+            /**
+             * 显示在详情界面上
+             * 头像尚未解析
+             */
+            txt_name.setText(contactsFullInfo.getName());
+            txt_phone.setText(contactsFullInfo.getPhone());
+            txt_address.setText(contactsFullInfo.getAddress());
+        }
 
         _ID = id;
-
-        /**
-         * 显示在详情界面上
-         * 头像尚未解析
-         */
-        txt_name.setText(contactsFullInfo.getName());
-        txt_phone.setText(contactsFullInfo.getPhone());
-        txt_address.setText(contactsFullInfo.getAddress());
 
         btn_detailes_ok.setOnClickListener(new View.OnClickListener() {
             @Override
